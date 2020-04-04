@@ -55,16 +55,6 @@ size_t sum(const std::vector<size_t>& v)
 	return std::accumulate(v.begin(), v.end(), 0);
 }
 
-bool check_parity(const std::vector<size_t>& v, size_t n)
-{
-	const bool nodd = odd(n);
-	return std::all_of(v.begin(), v.end(), [&](size_t val)
-	{
-		auto count = std::count(v.begin(), v.end(), val);
-		return odd(count) == nodd;
-	});
-}
-
 bool full(const std::vector<size_t>& v)
 {
 	return std::all_of(v.begin(), v.end(), [size=v.size()](size_t val){return val == size;});
@@ -87,12 +77,29 @@ bool inc(std::vector<size_t>& v)
 	return true;
 }
 
+bool next_diagonal(std::vector<size_t>* diag)
+{
+	const auto trace = sum(*diag);
+	while (true)
+	{
+		const bool b = inc(*diag);
+		if (not b)
+		{
+			return false;
+		}
+		if (sum(*diag) == trace)
+		{
+			return true;
+		}
+	}
+}
+
 std::vector<size_t> find_diagonal(size_t size, size_t trace)
 {
 	std::vector<size_t> diag(size, 1);
 	while (true)
 	{
-		if (sum(diag) == trace and check_parity(diag, size))
+		if (sum(diag) == trace)
 		{
 			return diag;
 		}
@@ -151,7 +158,9 @@ std::vector<size_t> gen_row(const Mat& m, size_t r, const std::vector<size_t> di
 	std::iota(row.begin(), row.end(), 1);
 	while (true)
 	{
-		if (row_doesnt_conflict(m, r, row) and row_matches_diag(row, r, diag))
+		auto conflict = row_doesnt_conflict(m, r, row);
+		auto matches = row_matches_diag(row, r, diag);
+		if (conflict and matches)
 		{
 			return row;
 		}
@@ -190,23 +199,21 @@ Mat gen_diag(const std::vector<size_t>& diag)
 	return m;
 }
 
-std::function<Mat()> get_gen(size_t size, size_t trace)
-{
-	auto diag = find_diagonal(size, trace);
-	if (diag.size())
-	{
-		return [diag=std::move(diag)]()
-		{
-			return gen_diag(diag);
-		};
-	}
-	return [](){return Mat{0};};
-}
-
 Mat generate(size_t size, size_t trace)
 {
-	auto gen = get_gen(size, trace);
-	return gen();
+	auto diag = find_diagonal(size, trace);
+	while (true)
+	{
+		Mat m = gen_diag(diag);
+		if (m.sz)
+		{
+			return m;
+		}
+		if (not next_diagonal(&diag))
+		{
+			return {0};
+		}
+	}
 }
 
 template <typename Callable>
