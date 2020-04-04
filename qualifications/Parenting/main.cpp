@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <vector>
+#include <set>
 #include <string>
 #include <algorithm>
 
@@ -54,38 +55,70 @@ void repeat(unsigned n, Callable f)
 	}
 }
 
+struct Job
+{
+	unsigned idx;
+	Range r;
+};
+
+size_t length(const Range& r)
+{
+	return r.end - r.start;
+}
+
+bool operator<(const Job& lhs, const Job& rhs)
+{
+	return length(lhs.r) > length(rhs.r);
+}
+
+using Jobs = std::multiset<Job>;
+
+Jobs read_jobs()
+{
+	Jobs jobs;
+	size_t no;
+	std::cin >> no;
+	repeat(no, [&](unsigned n)
+	{
+		size_t start, end;
+		std::cin >> start >> end;
+		Range r {start, end};
+		jobs.insert({n, r});
+		return true;
+	});
+	return jobs;
+}
+
 int main()
 {
 	size_t n;
 	std::cin >> n;
 	repeat(n, [](unsigned k)
 	{
-		size_t no;
-		std::cin >> no;
+		Jobs jobs = read_jobs();
 		Peep C, J;
 		std::string ans = "";
-		repeat(no, [&](unsigned) mutable
+		ans.resize(jobs.size());
+		for (const auto job : jobs)
 		{
-			size_t start, end;
-			std::cin >> start >> end;
-			Range r {start, end};
+			auto r = job.r;
+			auto idx = job.idx;
 			if (C.can(r))
 			{
 				C.add(r);
-				ans.push_back('C');
+				ans[idx] = 'C';
 			}
 			else if (J.can(r))
 			{
 				J.add(r);
-				ans.push_back('J');
+				ans[idx] = 'J';
 			}
 			else
 			{
 				ans = "IMPOSSIBLE";
-				return false;
+				break;
 			}
-			return true;
-		});
+		}
 		std::printf("Case #%u: %s\n", k+1, ans.c_str());
 		return true;
 	});
