@@ -182,6 +182,10 @@ Mat gen_diag(const std::vector<size_t>& diag)
 		{
 			set_row(&m, r, row);
 		}
+		else
+		{
+			return {0};
+		}
 	}
 	return m;
 }
@@ -196,26 +200,13 @@ std::function<Mat()> get_gen(size_t size, size_t trace)
 			return gen_diag(diag);
 		};
 	}
-	return {};
+	return [](){return Mat{0};};
 }
 
-struct Result
-{
-	Mat m;
-	bool possible;
-};
-
-Result generate(size_t size, size_t trace)
+Mat generate(size_t size, size_t trace)
 {
 	auto gen = get_gen(size, trace);
-	if (gen)
-	{
-		return {gen(), true};
-	}
-	else
-	{
-		return {Mat {0}, false};
-	}
+	return gen();
 }
 
 template <typename Callable>
@@ -240,11 +231,12 @@ int main()
 	{
 		size_t size, trace;
 		std::cin >> size >> trace;
-		auto r = generate(size, trace);
-		std::cout << "Case #" << (k+1) << ": " << pos_s(r.possible);
-		if (r.possible)
+		auto m = generate(size, trace);
+		const bool possible = m.sz;
+		std::cout << "Case #" << (k+1) << ": " << pos_s(possible);
+		if (possible)
 		{
-			std::cout << r.m;
+			std::cout << m;
 		}
 		std::cout << "\n";
 	});
