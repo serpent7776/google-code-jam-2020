@@ -8,13 +8,8 @@
 class Mat
 {
 public:
-	Mat(size_t sz) : sz{sz}, data {new size_t[sz * sz]}
+	Mat(size_t sz) : sz{sz}, data(sz * sz, 0)
 	{}
-
-	~Mat()
-	{
-		delete [] data;
-	}
 
 	size_t& operator()(size_t x, size_t y)
 	{
@@ -28,7 +23,7 @@ public:
 
 	size_t sz;
 private:
-	size_t *data;
+	std::vector<size_t> data;
 };
 
 std::ostream& operator<<(std::ostream& s, const Mat& m)
