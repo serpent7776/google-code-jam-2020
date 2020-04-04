@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <vector>
+#include <functional>
 
 class Mat
 {
@@ -47,12 +48,6 @@ std::ostream& operator<<(std::ostream& s, const Mat& m)
 	return s;
 }
 
-enum Type
-{
-	One_to_n = -1,
-	Impossible = 0,
-};
-
 size_t sum_1_n(size_t size)
 {
 	size_t sum = 0;
@@ -71,22 +66,6 @@ size_t sum_n_sz(size_t size, size_t n)
 bool odd(size_t val)
 {
 	return val % 2 == 1;
-}
-
-Type get_type(size_t size, size_t trace)
-{
-	if (odd(size) and sum_1_n(size) == trace)
-	{
-		return One_to_n;
-	}
-	for (size_t n = 1; n <= size; ++n)
-	{
-		if (sum_n_sz(size, n) == trace)
-		{
-			return Type(n);
-		}
-	}
-	return Impossible;
 }
 
 Mat gen_one_to_n(size_t size)
@@ -112,6 +91,28 @@ Mat gen_n_cp(size_t size, size_t n)
 	return m;
 }
 
+std::function<Mat()> get_gen(size_t size, size_t trace)
+{
+	if (odd(size) and sum_1_n(size) == trace)
+	{
+		return [=]()
+		{
+			return gen_one_to_n(size);
+		};
+	}
+	for (size_t n = 1; n <= size; ++n)
+	{
+		if (sum_n_sz(size, n) == trace)
+		{
+			return [=]()
+			{
+				return gen_n_cp(size, n);
+			};
+		}
+	}
+	return {};
+}
+
 struct Result
 {
 	Mat m;
@@ -120,18 +121,14 @@ struct Result
 
 Result generate(size_t size, size_t trace)
 {
-	auto type = get_type(size, trace);
-	if (type == One_to_n)
+	auto gen = get_gen(size, trace);
+	if (gen)
 	{
-		return {gen_one_to_n(size), true};
-	}
-	if (type > 0)
-	{
-		return {gen_n_cp(size, type), true};
+		return {gen(), true};
 	}
 	else
 	{
-		return {{size}, false};
+		return {Mat {0}, false};
 	}
 }
 
