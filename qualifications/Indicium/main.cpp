@@ -50,47 +50,9 @@ std::ostream& operator<<(std::ostream& s, const Mat& m)
 	return s;
 }
 
-size_t sum_1_n(size_t size)
-{
-	size_t sum = 0;
-	for (size_t i = 1; i <= size; ++i)
-	{
-		sum += i;
-	}
-	return sum;
-}
-
-size_t sum_n_sz(size_t size, size_t n)
-{
-	return size * n;
-}
-
 bool odd(size_t val)
 {
 	return val % 2 == 1;
-}
-
-Mat gen_one_to_n(size_t size)
-{
-	Mat m {size};
-	for (size_t x = 0; x < size; ++x)
-		for (size_t y = 0; y < size; ++y)
-		{
-			size_t offset = x;
-			m(x, y) = (offset + y) % size + 1;
-		}
-	return m;
-}
-
-Mat gen_n_cp(size_t size, size_t n)
-{
-	Mat m {size};
-	for (size_t x = 0; x < size; ++x)
-		for (size_t y = 0; y < size; ++y)
-		{
-			m(x, y) = (size + n - y + x - 1) % size + 1;
-		}
-	return m;
 }
 
 size_t sum(const std::vector<size_t>& v)
@@ -231,33 +193,13 @@ Mat gen_diag(const std::vector<size_t>& diag)
 
 std::function<Mat()> get_gen(size_t size, size_t trace)
 {
-	if (odd(size) and sum_1_n(size) == trace)
+	auto diag = find_diagonal(size, trace);
+	if (diag.size())
 	{
-		return [=]()
+		return [diag=std::move(diag)]()
 		{
-			return gen_one_to_n(size);
+			return gen_diag(diag);
 		};
-	}
-	for (size_t n = 1; n <= size; ++n)
-	{
-		if (sum_n_sz(size, n) == trace)
-		{
-			return [=]()
-			{
-				return gen_n_cp(size, n);
-			};
-		}
-	}
-	if (size >= 4)
-	{
-		auto diag = find_diagonal(size, trace);
-		if (diag.size())
-		{
-			return [diag=std::move(diag)]()
-			{
-				return gen_diag(diag);
-			};
-		}
 	}
 	return {};
 }
