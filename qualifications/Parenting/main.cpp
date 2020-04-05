@@ -15,8 +15,7 @@ bool independent(const Range& lhs, const Range& rhs)
 {
 	const bool rhs_is_later = rhs.start >= lhs.end;
 	const bool rhs_is_earlier = rhs.end <= lhs.start;
-	return rhs_is_later or
-		rhs_is_earlier;
+	return rhs_is_later or rhs_is_earlier;
 }
 
 bool overlaps(const Range& lhs, const Range& rhs)
@@ -47,11 +46,7 @@ void repeat(unsigned n, Callable f)
 {
 	for (unsigned i = 0u; i < n; ++i)
 	{
-		const bool cont = f(i);
-		if (not cont)
-		{
-			break;
-		}
+		f(i);
 	}
 }
 
@@ -120,6 +115,5 @@ int main()
 			}
 		}
 		std::printf("Case #%u: %s\n", k+1, ans.c_str());
-		return true;
 	});
 }
